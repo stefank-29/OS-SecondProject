@@ -61,7 +61,7 @@ OBJS = \
 # TOOLPREFIX = i386-jos-elf
 
 # Using native tools (e.g., on X86 Linux)
-#TOOLPREFIX = 
+#TOOLPREFIX =
 
 # Try to infer the correct TOOLPREFIX if not set
 ifndef TOOLPREFIX
@@ -194,6 +194,7 @@ $T/mkfs: $T/mkfs.c $K/fs.h
 .PRECIOUS: %.o
 
 UPROGS=\
+	$U/_blockwriter\
 	$U/_cat\
 	$U/_echo\
 	$U/_forktest\
@@ -213,7 +214,7 @@ UPROGS=\
 fs.img: $T/mkfs README $(UPROGS)
 	$T/mkfs fs.img README $(UPROGS)
 
-clean: 
+clean:
 	rm -f *.tex *.dvi *.idx *.aux *.log *.ind *.ilg \
 	*/*.o */*.d */*.asm */*.sym $K/vectors.S $B/bootblock $K/entryother \
 	$U/initcode $U/initcode.out $K/kernel xv6.img fs.img $K/kernelmemfs \

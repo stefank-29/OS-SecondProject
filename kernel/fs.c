@@ -371,7 +371,7 @@ static uint
 bmap(struct inode *ip, uint bn) // inode, blocknumber(logicki blok file-a (od 0-16523))
 {
 	uint addr, *a, *b;
-	struct buf *bp, *bpp;
+	struct buf *bp;
 
 	if(bn < NDIRECT){ // ako je redni broj bloka < 11 (0-10)
 		if((addr = ip->addrs[bn]) == 0) // izvuce se stavka iz niza i smesti u addr i onda proveri dal je 0
@@ -409,14 +409,13 @@ bmap(struct inode *ip, uint bn) // inode, blocknumber(logicki blok file-a (od 0-
 			a[arrIdx] = addr = balloc(ip->dev);
 			log_write(bp);
 		}
-		bpp = bread(ip->dev, addr); // niz na trecem nivou
-		b = (uint*)bpp->data;
+		bp = bread(ip->dev, addr); // niz na trecem nivou
+		b = (uint*)bp->data;
 		if((addr = b[idxInArr]) == 0){
 			b[idxInArr] = addr = balloc(ip->dev);
-			log_write(bpp);
+			log_write(bp);
 		}
 		brelse(bp);
-		brelse(bpp); //* mozda samo bp
 		return addr;
 
 	}
@@ -435,7 +434,7 @@ static void
 itrunc(struct inode *ip)
 {
 	int i, j, k;
-	struct buf *bp;
+	struct buf *bp, *bpp;
 	uint *a, *b;
 
 	for(i = 0; i < NDIRECT; i++){
@@ -462,20 +461,21 @@ itrunc(struct inode *ip)
 		bp = bread(ip->dev, ip->addrs[NDIRECT+1]);
 		a = (uint*)bp->data;
 		for(j = 0; j < NINDIRECT; j++){
-			bp = bread(ip->dev, a[j]);
-			b = (uint*)bp->data;
-			for(k = 0; k < NINDIRECT; k++){
-				if(b[k]){
-					bfree(ip->dev, b[k]);
-				}
-			}
 			if(a[j]){
+				bpp = bread(ip->dev, a[j]);
+				b = (uint*)bpp->data;
+				for(k = 0; k < NINDIRECT; k++){
+					if(b[k]){
+						bfree(ip->dev, b[k]);
+					}
+				}
+				brelse(bpp);
 				bfree(ip->dev, a[j]);
 			}
 		}
 		brelse(bp);
 		bfree(ip->dev, ip->addrs[NDIRECT+1]);
-		ip->addrs[NDIRECT+1] = 0
+		ip->addrs[NDIRECT+1] = 0;
 	}
 
 
