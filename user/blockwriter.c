@@ -23,8 +23,8 @@ blockwriter(char *name, int blockNum){
 int
 main(int argc, char *argv[])
 {
-    int fd, size, k;
-    static char* filename;
+    int fd, size, k, i, n = 150;
+    char* filename = "long.txt";
 
    // k = atoi(argv[1]); // hvatam argument u komandnoj liniji
 
@@ -33,20 +33,29 @@ main(int argc, char *argv[])
         exit();
     }
 
-    if(strcmp(argv[1], "-h") || strcmp(argv[1], "--help")){
-        printf("\nUse this program to create a big file filled with a-z, A-Z and 0-9 characters.\n");
-        printf("Default filename: long.txt\n");
-        printf("Default blocks: 150\n");
-        printf("Usage: blockwriter [OPTION]...\n\n");
+    for(i = 1; i < argc; i++){
+        if(!strcmp(argv[i], "-h") || !strcmp(argv[i], "--help")){
+            printf("\nUse this program to create a big file filled with a-z, A-Z and 0-9 characters.\n");
+            printf("Default filename: long.txt\n");
+            printf("Default blocks: 150\n");
+            printf("Usage: blockwriter [OPTION]...\n\n");
 
-        printf("Command line options:\n");
-        printf("         -h, --help: Show help promt.\n");
-        printf("         -b, --blocks: Number of blocks to write.\n");
-        printf("         -o, --output-file: Set output filename\n");
+            printf("Command line options:\n");
+            printf("         -h, --help: Show help promt.\n");
+            printf("         -b, --blocks: Number of blocks to write.\n");
+            printf("         -o, --output-file: Set output filename\n");
+            exit();
+        }
+        if(!strcmp(argv[i], "-o") || !strcmp(argv[i], "--output-file")){
+           filename = argv[++i];
+        }
+        if(!strcmp(argv[i], "-b") || !strcmp(argv[i], "--blocks")){
+            n = atoi(argv[++i]);
+        }
 
     }
 
-
+    blockwriter(filename, n);
 
 	exit(); // mora exit na kraju poziva
 }
