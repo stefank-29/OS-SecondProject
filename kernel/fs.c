@@ -371,7 +371,7 @@ static uint
 bmap(struct inode *ip, uint bn) // inode, blocknumber(logicki blok file-a (od 0-16523))
 {
 	uint addr, *a, *b;
-	struct buf *bp;
+	struct buf *bp, *bpp;
 
 	if(bn < NDIRECT){ // ako je redni broj bloka < 11 (0-10)
 		if((addr = ip->addrs[bn]) == 0) // izvuce se stavka iz niza i smesti u addr i onda proveri dal je 0
@@ -409,13 +409,15 @@ bmap(struct inode *ip, uint bn) // inode, blocknumber(logicki blok file-a (od 0-
 			a[arrIdx] = addr = balloc(ip->dev);
 			log_write(bp);
 		}
-		bp = bread(ip->dev, addr); // niz na trecem nivou
-		b = (uint*)bp->data;
+		bpp = bread(ip->dev, addr); // niz na trecem nivou
+		b = (uint*)bpp->data;
 		if((addr = b[idxInArr]) == 0){
 			b[idxInArr] = addr = balloc(ip->dev);
-			log_write(bp);
+			log_write(bpp);
 		}
 		brelse(bp);
+		brelse(bpp);
+
 		return addr;
 
 	}
