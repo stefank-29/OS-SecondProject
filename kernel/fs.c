@@ -368,31 +368,60 @@ iunlockput(struct inode *ip)
 // Return the disk block address of the nth block in inode ip.
 // If there is no such block, bmap allocates one.
 static uint
-bmap(struct inode *ip, uint bn)
+bmap(struct inode *ip, uint bn) // inode, blocknumber(logicki blok file-a (od 0-16523))
 {
-	uint addr, *a;
-	struct buf *bp;
+	uint addr, *a, *b;
+	struct buf *bp, *bpp;
 
-	if(bn < NDIRECT){
-		if((addr = ip->addrs[bn]) == 0)
-			ip->addrs[bn] = addr = balloc(ip->dev);
-		return addr;
+	if(bn < NDIRECT){ // ako je redni broj bloka < 11 (0-10)
+		if((addr = ip->addrs[bn]) == 0) // izvuce se stavka iz niza i smesti u addr i onda proveri dal je 0
+			ip->addrs[bn] = addr = balloc(ip->dev); // ako je 0 prvi put pristupam tom delu fajla (rezervisem blok na disku)
+		return addr;								// upise se u addrs i u addr
 	}
-	bn -= NDIRECT;
+	bn -= NDIRECT; // redni broj bloka u pomocnom nizu (single indirect)
 
-	if(bn < NINDIRECT){
+	// single indirect
+	if(bn < NINDIRECT){ // < 128 u pomocnom nizu
 		// Load indirect block, allocating if necessary.
-		if((addr = ip->addrs[NDIRECT]) == 0)
+		if((addr = ip->addrs[NDIRECT]) == 0) // izvuce se pokazivac na pomocni niz addrs[11]
 			ip->addrs[NDIRECT] = addr = balloc(ip->dev);
-		bp = bread(ip->dev, addr);
-		a = (uint*)bp->data;
-		if((addr = a[bn]) == 0){
-			a[bn] = addr = balloc(ip->dev);
-			log_write(bp);
+		bp = bread(ip->dev, addr); // buf (blok) koji sadrzi pomocne pokazivace na blokove
+		a = (uint*)bp->data; // cast-ujemo 512B u pokazivace na int (128)
+		if((addr = a[bn]) == 0){ // pristupa se konkretnom bloku
+			a[bn] = addr = balloc(ip->dev); // alocira se ako je 0
+			log_write(bp); // zapise se na disk
 		}
 		brelse(bp);
 		return addr;
 	}
+
+	bn -= NINDIRECT;
+
+	// double indirect
+	if(bn < NINDIRECT*NINDIRECT){
+		if((addr = ip->addrs[NDIRECT+1]) == 0) // addrs[12]
+			ip->addrs[NDIRECT+1] = addr = balloc(ip->dev); // alocira se ako je 0
+		bp = bread(ip->dev, addr); // cita sa diska
+		a = (uint*)bp->data; // kastujem u pokazivace
+		int arrIdx = bn / 128; // koji je niz
+		int idxInArr = bn % 128; // index u nizu
+		if((addr = a[arrIdx]) == 0){
+			a[arrIdx] = addr = balloc(ip->dev);
+			log_write(bp);
+		}
+		bpp = bread(ip->dev, addr); // niz na trecem nivou
+		b = (uint*)bpp->data;
+		if((addr = b[idxInArr]) == 0){
+			b[idxInArr] = addr = balloc(ip->dev);
+			log_write(bpp);
+		}
+		brelse(bp);
+		brelse(bpp); //* mozda samo bp
+		return addr;
+
+	}
+
+
 
 	panic("bmap: out of range");
 }
@@ -405,9 +434,9 @@ bmap(struct inode *ip, uint bn)
 static void
 itrunc(struct inode *ip)
 {
-	int i, j;
+	int i, j, k;
 	struct buf *bp;
-	uint *a;
+	uint *a, *b;
 
 	for(i = 0; i < NDIRECT; i++){
 		if(ip->addrs[i]){
@@ -427,6 +456,28 @@ itrunc(struct inode *ip)
 		bfree(ip->dev, ip->addrs[NDIRECT]);
 		ip->addrs[NDIRECT] = 0;
 	}
+
+	// za double indirect
+	if(ip->addrs[NDIRECT+1]){
+		bp = bread(ip->dev, ip->addrs[NDIRECT+1]);
+		a = (uint*)bp->data;
+		for(j = 0; j < NINDIRECT; j++){
+			bp = bread(ip->dev, a[j]);
+			b = (uint*)bp->data;
+			for(k = 0; k < NINDIRECT; k++){
+				if(b[k]){
+					bfree(ip->dev, b[k]);
+				}
+			}
+			if(a[j]){
+				bfree(ip->dev, a[j]);
+			}
+		}
+		brelse(bp);
+		bfree(ip->dev, ip->addrs[NDIRECT+1]);
+		ip->addrs[NDIRECT+1] = 0
+	}
+
 
 	ip->size = 0;
 	iupdate(ip);
@@ -463,6 +514,7 @@ readi(struct inode *ip, char *dst, uint off, uint n)
 	if(off + n > ip->size)
 		n = ip->size - off;
 
+	// ista logika kao za write // citanje blok po blok
 	for(tot=0; tot<n; tot+=m, off+=m, dst+=m){
 		bp = bread(ip->dev, bmap(ip, off/BSIZE));
 		m = min(n - tot, BSIZE - off%BSIZE);
@@ -475,26 +527,29 @@ readi(struct inode *ip, char *dst, uint off, uint n)
 // Write data to inode.
 // Caller must hold ip->lock.
 int
-writei(struct inode *ip, char *src, uint off, uint n)
-{
+writei(struct inode *ip, char *src, uint off, uint n) //  src -> niz karaktera, offset -> dokle sam stigao sa pisanjem u file
+{													  // n -> velicina niza
 	uint tot, m;
 	struct buf *bp;
 
+	// upisivanje na console
 	if(ip->type == T_DEV){
 		if(ip->major < 0 || ip->major >= NDEV || !devsw[ip->major].write)
 			return -1;
 		return devsw[ip->major].write(ip, src, n);
 	}
 
+	// pisanje na disk
 	if(off > ip->size || off + n < off)
 		return -1;
 	if(off + n > MAXFILE*BSIZE)
 		return -1;
 
-	for(tot=0; tot<n; tot+=m, off+=m, src+=m){
-		bp = bread(ip->dev, bmap(ip, off/BSIZE));
-		m = min(n - tot, BSIZE - off%BSIZE);
-		memmove(bp->data + off%BSIZE, src, m);
+	// pisanje blok po blok
+	for(tot=0; tot<n; tot+=m, off+=m, src+=m){	  // (off/BSIZE) -> vraca redni broj bloka u kome se nalazi offset (logicki)
+		bp = bread(ip->dev, bmap(ip, off/BSIZE)); // bmap -> vrati blok na disku // bread cita taj blok sa diska
+		m = min(n - tot, BSIZE - off%BSIZE);  // koliko jos imam da pisem do kraja src niza (m => ili ceo blok ili ostatak u poslednjem bloku)
+		memmove(bp->data + off%BSIZE, src, m); // (data u baferu, src, m)		(to, from, size)
 		log_write(bp);
 		brelse(bp);
 	}
@@ -616,7 +671,7 @@ skipelem(char *path, char *name)
 // path element into name, which must have room for DIRSIZ bytes.
 // Must be called inside a transaction since it calls iput().
 static struct inode*
-namex(char *path, int nameiparent, char *name)
+namex(char *path, int nameiparent, char *name) //* "/home/README"
 {
 	struct inode *ip, *next;
 
@@ -625,7 +680,7 @@ namex(char *path, int nameiparent, char *name)
 	else
 		ip = idup(myproc()->cwd);
 
-	while((path = skipelem(path, name)) != 0){
+	while((path = skipelem(path, name)) != 0){ // skipelem radi seckanje originalne putanje (najlevlja stavka u putanji)
 		ilock(ip);
 		if(ip->type != T_DIR){
 			iunlockput(ip);
@@ -636,12 +691,12 @@ namex(char *path, int nameiparent, char *name)
 			iunlock(ip);
 			return ip;
 		}
-		if((next = dirlookup(ip, name, 0)) == 0){
+		if((next = dirlookup(ip, name, 0)) == 0){ // trazi u dir-u name (izvuce njegov inode)
 			iunlockput(ip);
 			return 0;
 		}
 		iunlockput(ip);
-		ip = next;
+		ip = next;								// tako sve dok ne dodjem do file-a
 	}
 	if(nameiparent){
 		iput(ip);
@@ -651,10 +706,10 @@ namex(char *path, int nameiparent, char *name)
 }
 
 struct inode*
-namei(char *path)
-{
+namei(char *path) // prosledi se putanja //*("/home/README")
+{				  // vraca inode za taj file
 	char name[DIRSIZ];
-	return namex(path, 0, name);
+	return namex(path, 0, name); // 0 -> trenutni fajl, 1 -> roditeljski dir
 }
 
 struct inode*

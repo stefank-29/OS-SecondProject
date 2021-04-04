@@ -13,7 +13,7 @@
 #include "fs.h"
 #include "buf.h"
 
-#define SECTOR_SIZE   512
+#define SECTOR_SIZE   512 // sector isto sto i blok
 #define IDE_BSY       0x80
 #define IDE_DRDY      0x40
 #define IDE_DF        0x20
@@ -71,7 +71,7 @@ ideinit(void)
 
 // Start the request for b.  Caller must hold idelock.
 static void
-idestart(struct buf *b)
+idestart(struct buf *b) // radi fizicko pisanje na disk
 {
 	if(b == 0)
 		panic("idestart");

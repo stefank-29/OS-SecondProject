@@ -21,19 +21,22 @@ struct superblock {
 	uint bmapstart;    // Block number of first free map block
 };
 
-#define NDIRECT 12
-#define NINDIRECT (BSIZE / sizeof(uint))
-#define MAXFILE (NDIRECT + NINDIRECT)
+#define NDIRECT 11
+#define NINDIRECT (BSIZE / sizeof(uint)) // 512B/4B = 128
+#define MAXFILE (NDIRECT + NINDIRECT + NINDIRECT*NINDIRECT)
 
 // On-disk inode structure
-struct dinode {
-	short type;           // File type
+struct dinode { //* inode kad je na disku
+	short type;           // File type //* uredjaj ili obican file
 	short major;          // Major device number (T_DEV only)
 	short minor;          // Minor device number (T_DEV only)
-	short nlink;          // Number of links to inode in file system
-	uint size;            // Size of file (bytes)
-	uint addrs[NDIRECT+1];   // Data block addresses
+	short nlink;          // Number of links to inode in file system //* precice ka fajlu
+	uint size;            // Size of file (bytes) //* velicina file-a na disku
+	uint addrs[NDIRECT+2];   // Data block addresses //* niz pokazivaca na blokove (13)
 };
+// velicina: 8 + 4 + 13*4 = 64B
+
+// 512 / 64 = 8 //* 8 inode struktura u jedan blok na disku
 
 // Inodes per block.
 #define IPB           (BSIZE / sizeof(struct dinode))
@@ -51,7 +54,7 @@ struct dinode {
 #define DIRSIZ 14
 
 struct dirent {
-	ushort inum;
-	char name[DIRSIZ];
+	ushort inum; // redni broj inode-a koji opisuje file
+	char name[DIRSIZ]; // naziv za file
 };
 
