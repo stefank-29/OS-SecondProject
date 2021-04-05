@@ -51,6 +51,21 @@ fdalloc(struct file *f)
 	}
 	return -1;
 }
+//***********************************************************************************
+
+int
+sys_setkey(void){
+	int n;
+	int i;
+
+	argint(0, &n); // 0-ti argument u promenljivu n smesti
+	for(int i = 0; i < n; i++){
+		cprintf("Hello world\n");
+	}
+	return 0;
+}
+
+//***********************************************************************************
 
 int
 sys_dup(void)

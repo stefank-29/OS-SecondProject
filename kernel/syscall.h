@@ -20,3 +20,4 @@
 #define SYS_link   19
 #define SYS_mkdir  20
 #define SYS_close  21
+#define SYS_setkey 22 // mora naziv SYS_ + ime funkcije u korisnickom prostoru (generise se u usys.h)
