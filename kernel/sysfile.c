@@ -15,6 +15,9 @@
 #include "sleeplock.h"
 #include "file.h"
 #include "fcntl.h"
+#include "math.h"
+
+#include "globalvars.h"
 
 // Fetch the nth word-sized system call argument as a file descriptor
 // and return both the descriptor and the corresponding struct file.
@@ -52,16 +55,37 @@ fdalloc(struct file *f)
 	return -1;
 }
 //***********************************************************************************
+int encr_key = -10000;
 
 int
 sys_setkey(void){
 	int n;
 	int i;
 
-	argint(0, &n); // 0-ti argument u promenljivu n smesti
-	for(int i = 0; i < n; i++){
-		cprintf("Hello world\n");
+	if(argint(0, &n) < 0){ // 0-ti argument u promenljivu n smesti
+		return -1;
 	}
+	encr_key = n;
+
+	cprintf("%d", encr_key);
+	// for(int i = 0; i < n; i++){
+		// cprintf("Hello world\n");
+		// cprintf("%d" , encr_key);
+	// }
+	return 0;
+}
+
+int echo_enabled = 1;
+
+int
+sys_setecho(void){
+	int n;
+
+	if(argint(0, &n) < 0){
+		return -1;
+	}
+	echo_enabled = n;
+
 	return 0;
 }
 

@@ -22,5 +22,14 @@
         "source.fixAll": true
     },
     // "prettier.disableLanguages": ["javascript", "javascriptreact"],
-    "peacock.color": "#9c0a0a"
+    "peacock.color": "#9c0a0a",
+    "files.associations": {
+        "types.h": "c",
+        "defs.h": "c",
+        "fcntl.h": "c",
+        "file.h": "c",
+        "param.h": "c",
+        "stat.h": "c",
+        "math.h": "c"
+    }
 }

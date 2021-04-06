@@ -3,11 +3,22 @@
 #include "user.h"
 #include "openmodes.h"
 
+int
+isNumber(const char *s){
+    while(*s != '\0'){
+
+        if (!('0' <= *s && *s <= '9')){
+            return 0;
+        }
+        *s++;
+    }
+    return 1;
+}
 
 int
 main(int argc, char *argv[])
 {
-    int fd, n, i;
+    int fd, n, i, error;
     char *number;
 
    // k = atoi(argv[1]); // hvatam argument u komandnoj liniji
@@ -26,16 +37,23 @@ main(int argc, char *argv[])
         if(!strcmp(argv[i], "-s") || !strcmp(argv[i], "--secret")){
            // iskljuciti echo
             printf("Enter the key: ");
-            gets(number, 10);
+            setecho(0);
+            number = gets(number, 10);
             n = atoi(number);
-            printf("%d", n);
+            setecho(1);
+            break;
+        }
+        if(isNumber(argv[i])){
+            n = atoi(argv[i]);
+        }else{
+            printf("Please enter an integer value.\n");
             exit();
         }
-
-
     }
 
-    setkey(n);
+    if(setkey(n) < 0){
+        printf("System call error.\n");
+    }
 
 	exit(); // mora exit na kraju poziva
 }

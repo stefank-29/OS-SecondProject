@@ -15,6 +15,8 @@
 #include "proc.h"
 #include "x86.h"
 
+#include "globalvars.h"
+
 static void consputc(int);
 
 static int panicked = 0;
@@ -63,6 +65,7 @@ cprintf(char *fmt, ...)
 
 	if (fmt == 0)
 		panic("null fmt");
+
 
 	argp = (uint*)(void*)(&fmt + 1);
 	for(i = 0; (c = fmt[i] & 0xff) != 0; i++){
@@ -215,7 +218,11 @@ consoleintr(int (*getc)(void))
 			if(c != 0 && input.e-input.r < INPUT_BUF){
 				c = (c == '\r') ? '\n' : c;
 				input.buf[input.e++ % INPUT_BUF] = c;
-				consputc(c);
+				if(echo_enabled || c == '\n'){
+					consputc(c);
+				}else{
+					consputc('*');
+				}
 				if(c == '\n' || c == C('D') || input.e == input.r+INPUT_BUF){
 					input.w = input.e;
 					wakeup(&input.r);
