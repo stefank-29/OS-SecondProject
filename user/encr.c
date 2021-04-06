@@ -36,7 +36,7 @@ main(int argc, char *argv[])
             // ceo dir
         }
         if((fd = open(argv[i], 0)) < 0){
-			printf("cat: cannot open %s\n", argv[i]);
+			printf("cannot open %s\n", argv[i]);
 			exit();
 		}
 

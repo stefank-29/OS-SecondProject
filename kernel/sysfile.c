@@ -89,7 +89,8 @@ sys_setecho(void){
 int
 sys_encr(void){
 	struct file *f;
-
+	char *niz;
+	int n;
 
 	if(argfd(0, 0, &f) < 0){
 		return -4;
@@ -109,14 +110,21 @@ sys_encr(void){
 
 	f->ip->major = 1;
 
-	begin_op();
-	ilock(f->ip);
+	// begin_op();
+	// ilock(f->ip);
 
-	iupdate(f->ip);
-	iunlockput(f->ip);
-	end_op();
-	// iput(f->ip);
-	// cprintf("%d", f->ip->type);
+	// iupdate(f->ip);
+
+	// iunlockput(f->ip);
+	// end_op();
+
+	int k;
+
+	n = f->ip->size;
+	// k = readi(f->ip, niz, f->off, n);
+	fileread(f, niz, 10);
+	// prvo read pa encr pa write
+
 
 	return 0;
 }
