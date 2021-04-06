@@ -65,13 +65,10 @@ sys_setkey(void){
 	if(argint(0, &n) < 0){ // 0-ti argument u promenljivu n smesti
 		return -1;
 	}
-	encr_key = n;
 
-	cprintf("%d", encr_key);
-	// for(int i = 0; i < n; i++){
-		// cprintf("Hello world\n");
-		// cprintf("%d" , encr_key);
-	// }
+	encr_key = n;
+	//cprintf("%d", encr_key);
+
 	return 0;
 }
 
@@ -85,6 +82,41 @@ sys_setecho(void){
 		return -1;
 	}
 	echo_enabled = n;
+
+	return 0;
+}
+
+int
+sys_encr(void){
+	struct file *f;
+
+
+	if(argfd(0, 0, &f) < 0){
+		return -4;
+	}
+
+	if(encr_key == -10000){
+		return -1;
+	}
+
+	if(f->ip->type == T_DEV){
+		return -2;
+	}
+
+	if(f->ip->major == 1){
+		return -3;
+	}
+
+	f->ip->major = 1;
+
+	begin_op();
+	ilock(f->ip);
+
+	iupdate(f->ip);
+	iunlockput(f->ip);
+	end_op();
+	// iput(f->ip);
+	// cprintf("%d", f->ip->type);
 
 	return 0;
 }

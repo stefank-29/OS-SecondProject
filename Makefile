@@ -197,6 +197,7 @@ UPROGS=\
 	$U/_blockwriter\
 	$U/_cat\
 	$U/_echo\
+	$U/_encr\
 	$U/_forktest\
 	$U/_grep\
 	$U/_init\

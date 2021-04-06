@@ -27,6 +27,7 @@ int uptime(void);
 // moji potpisi syscallova
 int setkey(int);
 int setecho(int);
+int encr(int);
 
 
 // ulib.c

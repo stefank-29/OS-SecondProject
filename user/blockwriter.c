@@ -43,7 +43,7 @@ main(int argc, char *argv[])
             printf("Command line options:\n");
             printf("         -h, --help: Show help promt.\n");
             printf("         -b, --blocks: Number of blocks to write.\n");
-            printf("         -o, --output-file: Set output filename\n");
+            printf("         -o, --output-file: Set output filename.\n");
             exit();
         }
         if(!strcmp(argv[i], "-o") || !strcmp(argv[i], "--output-file")){
