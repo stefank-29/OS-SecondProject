@@ -114,16 +114,15 @@ sys_encr(void){
 	int k;
 	char niz[512];
 
+//niz[i] != '\0'
 	while(k = fileread(f, niz, sizeof(niz))){
-		for(int i = 0; niz[i] != '\0'; i++){
-			if(niz[i] == '\n'){
-				continue;
-			}
-			niz[i] = (char)((niz[i] + encr_key) % 256);
+		for(int i = 0; i < k ; i++){
+
+			niz[i] = (niz[i] + encr_key) % 256;
 		}
 		f->off -= k;
 
-		filewrite(f, niz, k	);
+		filewrite(f, niz, k);
 	}
 
 	f->ip->major = 1;
@@ -168,15 +167,13 @@ sys_decr(void){
 	char niz[512];
 
 	while(k = fileread(f, niz, sizeof(niz))){
-		for(int i = 0; niz[i] != '\0'; i++){
-			if(niz[i] == '\n'){
-				continue;
-			}
-			niz[i] = (char)((niz[i] + 256 - (encr_key % 256)) % 256);
+		for(int i = 0; i < k; i++){
+
+			niz[i] = (niz[i] + 256 - (encr_key % 256)) % 256;
 		}
 		f->off -= k;
 
-		filewrite(f, niz, k	);
+		filewrite(f, niz, k);
 	}
 
 
