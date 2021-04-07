@@ -5,12 +5,12 @@
 
 void
 helpMenu(){
-    printf("\nUse this program to encrypt files written on the disk.\n");
-    printf("Usage: encr [OPTION]... [FILE]...\n\n");
+    printf("\nUse this program to decrypt files written on the disk.\n");
+    printf("Usage: decr [OPTION]... [FILE]...\n\n");
 
     printf("Command line options:\n");
     printf("         -h, --help: Show help promt.\n");
-    printf("         -a, --encrypt-all: Encrypt all files in CWD with current key.\n");
+    printf("         -a, --encrypt-all: Decrypt all files in CWD with current key.\n");
 }
 
 
@@ -30,7 +30,7 @@ main(int argc, char *argv[])
             helpMenu();
             exit();
         }
-        if(!strcmp(argv[i], "-a") || !strcmp(argv[i], "--encrypt-all")){
+        if(!strcmp(argv[i], "-o") || !strcmp(argv[i], "--decrypt-all")){
             // ceo dir
         }
         if((fd = open(argv[i], O_RDWR)) < 0){
@@ -39,18 +39,18 @@ main(int argc, char *argv[])
 		}
 
 
-        switch(encr(fd)){
+        switch(decr(fd)){
             case 0:
-                printf("Successfully encrypted file: %s \n", argv[i]);
+                printf("Successfully decrypted file: %s \n", argv[i]);
                 break;
             case -1:
-                printf("Failed to encrypt file: %s [key not set]\n", argv[i]);
+                printf("Failed to decrypt file: %s [key not set]\n", argv[i]);
                 break;
             case -2:
-                printf("Failed to encrypt file: %s [can't encrypt dev file]\n", argv[i]);
+                printf("Failed to decrypt file: %s [can't encrypt dev file]\n", argv[i]);
                 break;
             case -3:
-                printf("Failed to encrypt file: %s [file is already encrypted]\n", argv[i]);
+                printf("Failed to decrypt file: %s [file is not encrypted]\n", argv[i]);
                 break;
             default:
                 printf("Greska\n");

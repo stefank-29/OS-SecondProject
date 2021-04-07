@@ -32,4 +32,5 @@ SYSCALL(uptime)
 SYSCALL(setkey)
 SYSCALL(setecho)
 SYSCALL(encr)
+SYSCALL(decr)
 

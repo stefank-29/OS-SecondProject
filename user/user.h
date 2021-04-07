@@ -28,7 +28,7 @@ int uptime(void);
 int setkey(int);
 int setecho(int);
 int encr(int);
-
+int decr(int);
 
 // ulib.c
 int stat(const char*, struct stat*);

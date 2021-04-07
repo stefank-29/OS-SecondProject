@@ -108,21 +108,13 @@ sys_encr(void){
 	}
 
 	n = f->ip->size;
-	// f->ip->major = 1;
+	f->ip->major = 1;
 
 
 	// prvo read pa encr pa write
 	int k;
 	char niz[512];
 
-	// cprintf("%d", f->off);
-	// k = fileread(f, niz, sizeof(niz));
-	// cprintf("%d\n\n", k);
-
-	// k = fileread(f, niz, sizeof(niz));
-	// cprintf("%d\n\n", k);
-
-	// cprintf("%d", f->off);
 
 	int j=1;
 	while(k = fileread(f, niz, sizeof(niz))){
@@ -135,9 +127,64 @@ sys_encr(void){
 		}
 		f->off -= k;
 
-		// cprintf("%d: %d\n", j, f->off);
 		filewrite(f, niz, k	);
-		// cprintf("%d: %d\n", j, f->off);
+		j++;
+	}
+
+
+	begin_op();
+	ilock(f->ip);
+
+	iupdate(f->ip);
+
+	iunlockput(f->ip);
+	end_op();
+
+	return 0;
+}
+
+int
+sys_decr(void){
+	struct file *f;
+	int n;
+
+	if(argfd(0, 0, &f) < 0){
+		return -4;
+	}
+
+	if(encr_key == -10000){
+		return -1;
+	}
+
+	if(f->ip->type == T_DEV){
+		return -2;
+	}
+
+	if(f->ip->major == 0){
+		return -3;
+	}
+
+	n = f->ip->size;
+	f->ip->major = 0;
+
+
+	// prvo read pa decr pa write
+	int k;
+	char niz[512];
+
+
+	int j=1;
+	while(k = fileread(f, niz, sizeof(niz))){
+		cprintf("%d\n\n", k);
+		for(int i = 0; niz[i] != '\0'; i++){
+			if(niz[i] == '\n'){
+				continue;
+			}
+			niz[i] = (niz[i] - encr_key) % 255;
+		}
+		f->off -= k;
+
+		filewrite(f, niz, k	);
 		j++;
 	}
 

@@ -106,6 +106,7 @@ extern int sys_uptime(void);
 extern int sys_setkey(void);
 extern int sys_setecho(void);
 extern int sys_encr(void);
+extern int sys_decr(void);
 
 
 static int (*syscalls[])(void) = {
@@ -133,6 +134,7 @@ static int (*syscalls[])(void) = {
 [SYS_setkey]  sys_setkey,
 [SYS_setecho] sys_setecho,
 [SYS_encr]    sys_encr,
+[SYS_decr]    sys_decr,
 };
 
 void
