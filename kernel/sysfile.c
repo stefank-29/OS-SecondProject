@@ -115,10 +115,7 @@ sys_encr(void){
 	int k;
 	char niz[512];
 
-
-	int j=1;
 	while(k = fileread(f, niz, sizeof(niz))){
-		cprintf("%d\n\n", k);
 		for(int i = 0; niz[i] != '\0'; i++){
 			if(niz[i] == '\n'){
 				continue;
@@ -128,9 +125,7 @@ sys_encr(void){
 		f->off -= k;
 
 		filewrite(f, niz, k	);
-		j++;
 	}
-
 
 	begin_op();
 	ilock(f->ip);
@@ -168,14 +163,10 @@ sys_decr(void){
 	f->ip->major = 0;
 
 
-	// prvo read pa decr pa write
 	int k;
 	char niz[512];
 
-
-	int j=1;
 	while(k = fileread(f, niz, sizeof(niz))){
-		cprintf("%d\n\n", k);
 		for(int i = 0; niz[i] != '\0'; i++){
 			if(niz[i] == '\n'){
 				continue;
@@ -185,9 +176,7 @@ sys_decr(void){
 		f->off -= k;
 
 		filewrite(f, niz, k	);
-		j++;
 	}
-
 
 	begin_op();
 	ilock(f->ip);

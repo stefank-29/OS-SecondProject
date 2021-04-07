@@ -1,7 +1,58 @@
 #include "kernel/types.h"
 #include "kernel/stat.h"
+#include "kernel/fs.h"
 #include "user.h"
 #include "openmodes.h"
+
+
+char*
+fmtname(char *path)
+{
+	static char buf[DIRSIZ+1];
+	char *p;
+
+	// Find first character after last slash.
+	for(p=path+strlen(path); p >= path && *p != '/'; p--)
+		;
+	p++;
+
+	// Return blank-padded name.
+	if(strlen(p) >= DIRSIZ)
+		return p;
+	memmove(buf, p, strlen(p));
+	// memset(buf+strlen(p), ' ', DIRSIZ-strlen(p));
+	return buf;
+}
+
+void
+decrypt(char *file){
+    int fd;
+
+    if((fd = open(file, O_RDWR)) < 0){
+        printf("cannot open %s\n", file);
+        return;
+	}
+
+    switch(decr(fd)){
+        case 0:
+            printf("Successfully decrypted file: %s \n", file);
+            break;
+        case -1:
+            printf("Failed to decrypt file: %s [key not set]\n", file);
+            break;
+        case -2:
+            printf("Failed to decrypt file: %s [can't encrypt dev file]\n", file);
+            break;
+        case -3:
+            printf("Failed to decrypt file: %s [file is not encrypted]\n", file);
+            break;
+        default:
+            printf("Greska\n");
+    }
+    close(fd);
+
+}
+
 
 void
 helpMenu(){
@@ -18,6 +69,8 @@ int
 main(int argc, char *argv[])
 {
     int fd, size, k, i, n = 150;
+    struct stat st;
+	struct dirent de;
 
 
     if(argc < 2){
@@ -32,30 +85,36 @@ main(int argc, char *argv[])
         }
         if(!strcmp(argv[i], "-a") || !strcmp(argv[i], "--decrypt-all")){
             // ceo dir
+            char buf[512], *p;
+
+            if((fd = open(".", 0)) < 0){
+                fprintf(2, "ls: cannot open %s\n", ".");
+                return;
+	        }
+            if(fstat(fd, &st) < 0){
+                fprintf(2, "ls: cannot stat %s\n", ".");
+		        close(fd);
+		        return;
+            }
+            strcpy(buf, ".");
+            p = buf+strlen(buf);
+            *p++ = '/';
+            while(read(fd, &de, sizeof(de)) == sizeof(de)){ // direnti iz foldera
+                if(de.inum == 0)
+                    continue;
+                memmove(p, de.name, DIRSIZ);
+                p[DIRSIZ] = 0;
+
+                decrypt(fmtname(buf));
+		    }
+            break;
         }
         if((fd = open(argv[i], O_RDWR)) < 0){
 			printf("cannot open %s\n", argv[i]);
 			exit();
 		}
 
-
-        switch(decr(fd)){
-            case 0:
-                printf("Successfully decrypted file: %s \n", argv[i]);
-                break;
-            case -1:
-                printf("Failed to decrypt file: %s [key not set]\n", argv[i]);
-                break;
-            case -2:
-                printf("Failed to decrypt file: %s [can't encrypt dev file]\n", argv[i]);
-                break;
-            case -3:
-                printf("Failed to decrypt file: %s [file is not encrypted]\n", argv[i]);
-                break;
-            default:
-                printf("Greska\n");
-        }
-        close(fd);
+        decrypt(argv[i]);
     }
 
 

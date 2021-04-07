@@ -1,7 +1,7 @@
 #include "kernel/types.h"
 #include "kernel/stat.h"
-#include "user.h"
 #include "kernel/fs.h"
+#include "user.h"
 #include "openmodes.h"
 
 char*
@@ -19,7 +19,7 @@ fmtname(char *path)
 	if(strlen(p) >= DIRSIZ)
 		return p;
 	memmove(buf, p, strlen(p));
-	memset(buf+strlen(p), ' ', DIRSIZ-strlen(p));
+	// memset(buf+strlen(p), ' ', DIRSIZ-strlen(p));
 	return buf;
 }
 
@@ -35,8 +35,31 @@ helpMenu(){
 
 
 void
-encr(char *file){
+encrypt(char *file){
+        int fd;
 
+        if((fd = open(file, O_RDWR)) < 0){
+			printf("cannot open %s\n", file);
+			return;
+		}
+
+        switch(encr(fd)){
+            case 0:
+                printf("Successfully encrypted file: %s \n", file);
+                break;
+            case -1:
+                printf("Failed to encrypt file: %s [key not set]\n", file);
+                break;
+            case -2:
+                printf("Failed to encrypt file: %s [can't encrypt dev file]\n", file);
+                break;
+            case -3:
+                printf("Failed to encrypt file: %s [file is already encrypted]\n", file);
+                break;
+            default:
+                printf("Greska\n");
+        }
+        close(fd);
 }
 
 int
@@ -59,7 +82,6 @@ main(int argc, char *argv[])
         }
         if(!strcmp(argv[i], "-a") || !strcmp(argv[i], "--encrypt-all")){
             // ceo dir
-            // printf("aloooo");
 	        char buf[512], *p;
 
             if((fd = open(".", 0)) < 0){
@@ -80,34 +102,13 @@ main(int argc, char *argv[])
                 memmove(p, de.name, DIRSIZ);
                 p[DIRSIZ] = 0;
 
-			    printf("%s\n", fmtname(buf));
+                encrypt(fmtname(buf));
+			    // printf("%s\n", fmtname(buf));
 		    }
             break;
         }
+        encrypt(argv[i]);
 
-        if((fd = open(argv[i], O_RDWR)) < 0){
-			printf("cannot open %s\n", argv[i]);
-			exit();
-		}
-
-
-        switch(encr(fd)){
-            case 0:
-                printf("Successfully encrypted file: %s \n", argv[i]);
-                break;
-            case -1:
-                printf("Failed to encrypt file: %s [key not set]\n", argv[i]);
-                break;
-            case -2:
-                printf("Failed to encrypt file: %s [can't encrypt dev file]\n", argv[i]);
-                break;
-            case -3:
-                printf("Failed to encrypt file: %s [file is already encrypted]\n", argv[i]);
-                break;
-            default:
-                printf("Greska\n");
-        }
-        close(fd);
     }
 
 
