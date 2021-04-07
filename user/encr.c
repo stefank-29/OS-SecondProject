@@ -35,7 +35,7 @@ main(int argc, char *argv[])
         if(!strcmp(argv[i], "-o") || !strcmp(argv[i], "--encrypt-all")){
             // ceo dir
         }
-        if((fd = open(argv[i], 0)) < 0){
+        if((fd = open(argv[i], O_RDWR)) < 0){
 			printf("cannot open %s\n", argv[i]);
 			exit();
 		}
@@ -54,8 +54,10 @@ main(int argc, char *argv[])
             case -3:
                 printf("Failed to encrypt file: %s [file is already encrypted]\n", argv[i]);
                 break;
+            default:
+                printf("Greska\n");
         }
-        close(fd);
+        // close(fd);
     }
 
 
