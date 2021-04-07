@@ -108,18 +108,37 @@ sys_encr(void){
 	}
 
 	n = f->ip->size;
-	f->ip->major = 1;
+	// f->ip->major = 1;
 
 
 	// prvo read pa encr pa write
 	int k;
 	char niz[512];
 
-	while((f, niz, sizeof(niz)) > 0){
+	// cprintf("%d", f->off);
+	// k = fileread(f, niz, sizeof(niz));
+	// cprintf("%d\n\n", k);
+
+	// k = fileread(f, niz, sizeof(niz));
+	// cprintf("%d\n\n", k);
+
+	// cprintf("%d", f->off);
+
+	int j=1;
+	while(k = fileread(f, niz, sizeof(niz))){
+		cprintf("%d\n\n", k);
 		for(int i = 0; niz[i] != '\0'; i++){
+			if(niz[i] == '\n'){
+				continue;
+			}
 			niz[i] = (niz[i] + encr_key) % 255;
 		}
-		filewrite(f, niz, sizeof(niz));
+		f->off -= k;
+
+		// cprintf("%d: %d\n", j, f->off);
+		filewrite(f, niz, k	);
+		// cprintf("%d: %d\n", j, f->off);
+		j++;
 	}
 
 
