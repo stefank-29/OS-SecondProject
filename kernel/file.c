@@ -9,6 +9,7 @@
 #include "spinlock.h"
 #include "sleeplock.h"
 #include "file.h"
+#include "stat.h"
 
 struct devsw devsw[NDEV];
 struct {
@@ -104,8 +105,10 @@ fileread(struct file *f, char *addr, int n)
 		return piperead(f->pipe, addr, n);
 	if(f->type == FD_INODE){
 		ilock(f->ip);
-		if((r = readi(f->ip, addr, f->off, n)) > 0)
-			f->off += r;
+		if((f->ip->type != T_FILE) || f->ip->major == 0){
+			if((r = readi(f->ip, addr, f->off, n)) > 0)
+				f->off += r;
+		}
 		iunlock(f->ip);
 		return r;
 	}

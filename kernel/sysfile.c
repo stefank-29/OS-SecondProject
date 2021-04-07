@@ -108,7 +108,6 @@ sys_encr(void){
 	}
 
 	n = f->ip->size;
-	f->ip->major = 1;
 
 
 	// prvo read pa encr pa write
@@ -126,6 +125,8 @@ sys_encr(void){
 
 		filewrite(f, niz, k	);
 	}
+
+	f->ip->major = 1;
 
 	begin_op();
 	ilock(f->ip);
@@ -160,7 +161,6 @@ sys_decr(void){
 	}
 
 	n = f->ip->size;
-	f->ip->major = 0;
 
 
 	int k;
@@ -177,6 +177,9 @@ sys_decr(void){
 
 		filewrite(f, niz, k	);
 	}
+
+
+	f->ip->major = 0;
 
 	begin_op();
 	ilock(f->ip);
