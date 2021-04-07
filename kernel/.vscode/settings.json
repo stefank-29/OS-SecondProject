@@ -30,6 +30,10 @@
         "file.h": "c",
         "param.h": "c",
         "stat.h": "c",
-        "math.h": "c"
+        "math.h": "c",
+        "limits": "c",
+        "*.tcc": "c",
+        "type_traits": "c",
+        "cmath": "c"
     }
 }

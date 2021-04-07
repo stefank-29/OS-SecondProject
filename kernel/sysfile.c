@@ -119,7 +119,7 @@ sys_encr(void){
 			if(niz[i] == '\n'){
 				continue;
 			}
-			niz[i] = (niz[i] + encr_key) % 255;
+			niz[i] = (char)((niz[i] + encr_key) % 256);
 		}
 		f->off -= k;
 
@@ -172,7 +172,7 @@ sys_decr(void){
 			if(niz[i] == '\n'){
 				continue;
 			}
-			niz[i] = (niz[i] - encr_key) % 255;
+			niz[i] = (char)((niz[i] + 256 - (encr_key % 256)) % 256);
 		}
 		f->off -= k;
 

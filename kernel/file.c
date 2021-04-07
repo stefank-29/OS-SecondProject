@@ -117,7 +117,7 @@ fileread(struct file *f, char *addr, int n)
 				if(addr[i] == '\n'){
 					continue;
 				}
-				addr[i] = (addr[i] - encr_key) % 255;
+				addr[i] = (char)((addr[i] + 256 - (encr_key%256)) % 256);
 			}
 		}
 		iunlock(f->ip);
