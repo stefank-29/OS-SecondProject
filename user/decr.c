@@ -30,7 +30,7 @@ main(int argc, char *argv[])
             helpMenu();
             exit();
         }
-        if(!strcmp(argv[i], "-o") || !strcmp(argv[i], "--decrypt-all")){
+        if(!strcmp(argv[i], "-a") || !strcmp(argv[i], "--decrypt-all")){
             // ceo dir
         }
         if((fd = open(argv[i], O_RDWR)) < 0){

@@ -1,7 +1,27 @@
 #include "kernel/types.h"
 #include "kernel/stat.h"
 #include "user.h"
+#include "kernel/fs.h"
 #include "openmodes.h"
+
+char*
+fmtname(char *path)
+{
+	static char buf[DIRSIZ+1];
+	char *p;
+
+	// Find first character after last slash.
+	for(p=path+strlen(path); p >= path && *p != '/'; p--)
+		;
+	p++;
+
+	// Return blank-padded name.
+	if(strlen(p) >= DIRSIZ)
+		return p;
+	memmove(buf, p, strlen(p));
+	memset(buf+strlen(p), ' ', DIRSIZ-strlen(p));
+	return buf;
+}
 
 void
 helpMenu(){
@@ -14,10 +34,17 @@ helpMenu(){
 }
 
 
+void
+encr(char *file){
+
+}
+
 int
 main(int argc, char *argv[])
 {
     int fd, size, k, i, n = 150;
+    struct stat st;
+	struct dirent de;
 
 
     if(argc < 2){
@@ -32,7 +59,32 @@ main(int argc, char *argv[])
         }
         if(!strcmp(argv[i], "-a") || !strcmp(argv[i], "--encrypt-all")){
             // ceo dir
+            // printf("aloooo");
+	        char buf[512], *p;
+
+            if((fd = open(".", 0)) < 0){
+                fprintf(2, "ls: cannot open %s\n", ".");
+                return;
+	        }
+            if(fstat(fd, &st) < 0){
+                fprintf(2, "ls: cannot stat %s\n", ".");
+		        close(fd);
+		        return;
+            }
+            strcpy(buf, ".");
+            p = buf+strlen(buf);
+            *p++ = '/';
+            while(read(fd, &de, sizeof(de)) == sizeof(de)){ // direnti iz foldera
+                if(de.inum == 0)
+                    continue;
+                memmove(p, de.name, DIRSIZ);
+                p[DIRSIZ] = 0;
+
+			    printf("%s\n", fmtname(buf));
+		    }
+            break;
         }
+
         if((fd = open(argv[i], O_RDWR)) < 0){
 			printf("cannot open %s\n", argv[i]);
 			exit();
