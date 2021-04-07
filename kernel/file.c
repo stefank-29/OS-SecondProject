@@ -11,6 +11,8 @@
 #include "file.h"
 #include "stat.h"
 
+#include "globalvars.h"
+
 struct devsw devsw[NDEV];
 struct {
 	struct spinlock lock;
@@ -108,6 +110,15 @@ fileread(struct file *f, char *addr, int n)
 		if((f->ip->type != T_FILE) || f->ip->major == 0){
 			if((r = readi(f->ip, addr, f->off, n)) > 0)
 				f->off += r;
+		}else{
+			if((r = readi(f->ip, addr, f->off, n)) > 0)
+				f->off += r;
+			for(int i = 0; addr[i] != '\0'; i++){
+				if(addr[i] == '\n'){
+					continue;
+				}
+				addr[i] = (addr[i] - encr_key) % 255;
+			}
 		}
 		iunlock(f->ip);
 		return r;

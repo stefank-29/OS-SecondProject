@@ -161,6 +161,7 @@ sys_decr(void){
 	}
 
 	n = f->ip->size;
+	f->ip->major = 0; // mora pre da normalno cita
 
 
 	int k;
@@ -179,7 +180,6 @@ sys_decr(void){
 	}
 
 
-	f->ip->major = 0;
 
 	begin_op();
 	ilock(f->ip);
