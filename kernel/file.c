@@ -114,7 +114,6 @@ fileread(struct file *f, char *addr, int n)
 			if((r = readi(f->ip, addr, f->off, n)) > 0)
 				f->off += r;
 			for(int i = 0; i < r; i++){
-
 				addr[i] = (addr[i] + 256 - (encr_key % 256)) % 256;
 			}
 		}
@@ -150,8 +149,16 @@ filewrite(struct file *f, char *addr, int n)
 
 			begin_op();
 			ilock(f->ip);
-			if ((r = writei(f->ip, addr + i, f->off, n1)) > 0)
-				f->off += r;
+		    if((f->ip->type != T_FILE) || f->ip->major == 0){
+				if ((r = writei(f->ip, addr + i, f->off, n1)) > 0)
+					f->off += r;
+			}else{
+				for(int i = 0; i < n1; i++){
+					addr[i] = (addr[i] + encr_key) % 256;
+				}
+				if ((r = writei(f->ip, addr + i, f->off, n1)) > 0)
+					f->off += r;
+			}
 			iunlock(f->ip);
 			end_op();
 
