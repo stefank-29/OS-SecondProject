@@ -153,8 +153,8 @@ filewrite(struct file *f, char *addr, int n)
 				if ((r = writei(f->ip, addr + i, f->off, n1)) > 0)
 					f->off += r;
 			}else{
-				for(int i = 0; i < n1; i++){
-					addr[i] = (addr[i] + encr_key) % 256;
+				for(int j = 0; j < n1; j++){
+					addr[j + i] = (addr[j + i] + encr_key) % 256;
 				}
 				if ((r = writei(f->ip, addr + i, f->off, n1)) > 0)
 					f->off += r;
